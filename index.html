@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Vendesiya — Sri Lanka's Live Auction Marketplace">
+<title>Vendesiya</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --p: #5B21B6; --pd: #4C1D95; --pl: #EDE9FE;
+  --a: #D97706; --al: #FEF3C7;
+  --ok: #059669; --err: #DC2626;
+  --bg: #F5F3FF; --surf: #fff;
+  --bdr: #E5E7EB; --txt: #111827; --muted: #6B7280;
+  --sh: 0 1px 3px rgba(0,0,0,.1); --shm: 0 4px 12px rgba(0,0,0,.1);
+  --shl: 0 10px 30px rgba(0,0,0,.12);
+  --r: 14px; --rs: 8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
+
+/* NAV */
+.nav{background:var(--pd);color:#fff;height:58px;padding:0 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--shm)}
+.nav-logo{font-size:1.4rem;font-weight:800;cursor:pointer;letter-spacing:-.5px;user-select:none}
+.nav-logo b{color:#FCD34D}
+.nav-right{display:flex;align-items:center;gap:6px}
+.nb{background:transparent;color:rgba(255,255,255,.85);border:none;padding:7px 13px;border-radius:var(--rs);cursor:pointer;font-size:.85rem;font-weight:500;transition:.15s;font-family:inherit}
+.nb:hover{background:rgba(255,255,255,.15);color:#fff}
+.nb-gold{background:var(--a);color:#fff;border:none;padding:7px 16px;border-radius:var(--rs);cursor:pointer;font-size:.85rem;font-weight:600;transition:.15s;font-family:inherit}
+.nb-gold:hover{background:#B45309}
+.nav-av{width:31px;height:31px;border-radius:50%;object-fit:cover;cursor:pointer;border:2px solid rgba(255,255,255,.4)}
+.badge-dot{background:#EF4444;color:#fff;border-radius:50%;width:17px;height:17px;font-size:.6rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-left:-5px;margin-top:-10px;vertical-align:top}
+
+/* LAYOUT */
+.wrap{max-width:1100px;margin:0 auto;padding:24px 20px}
+.screen{display:none}.screen.active{display:block}
+
+/* CARDS */
+.card{background:var(--surf);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+.card-p{padding:24px}
+.hover-lift{transition:transform .15s,box-shadow .15s}
+.hover-lift:hover{transform:translateY(-3px);box-shadow:var(--shl)}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px}
+
+/* AUCTION CARD */
+.ac{cursor:pointer}
+.ac-img{width:100%;height:190px;object-fit:cover;background:var(--pl);display:flex;align-items:center;justify-content:center;font-size:3rem;color:var(--p)}
+.ac-img img{width:100%;height:100%;object-fit:cover}
+.ac-body{padding:14px}
+.ac-title{font-weight:600;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.ac-seller{font-size:.78rem;color:var(--muted);margin-bottom:10px}
+.ac-foot{display:flex;justify-content:space-between;align-items:flex-end}
+.price{font-size:1.2rem;font-weight:700;color:var(--p);line-height:1}
+.price small{display:block;font-size:.7rem;font-weight:400;color:var(--muted)}
+.cd{font-size:.75rem;font-weight:600;padding:3px 9px;border-radius:20px;background:var(--al);color:var(--a)}
+.cd.urgent{background:#FEE2E2;color:var(--err)}
+.cd.over{background:var(--bdr);color:var(--muted)}
+
+/* BADGE */
+.bdg{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:.72rem;font-weight:600}
+.bdg::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor}
+.bdg-live{background:#D1FAE5;color:var(--ok)}
+.bdg-ended{background:var(--bdr);color:var(--muted)}
+
+/* AUCTION DETAIL */
+.ad-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+@media(max-width:768px){.ad-grid{grid-template-columns:1fr}}
+.ad-img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:var(--r);background:var(--pl);display:flex;align-items:center;justify-content:center;font-size:4rem}
+.ad-title{font-size:1.6rem;font-weight:700;line-height:1.2;margin-bottom:6px}
+.ad-price{font-size:2.4rem;font-weight:800;color:var(--p);margin:14px 0}
+.ad-price small{font-size:.85rem;font-weight:400;color:var(--muted);margin-left:4px}
+.ad-timer{font-size:1.3rem;font-weight:700;color:var(--a);padding:10px 18px;background:var(--al);border-radius:var(--rs);text-align:center;margin:14px 0}
+.ad-timer.urgent{background:#FEE2E2;color:var(--err)}
+.ad-timer.over{background:var(--bdr);color:var(--muted)}
+
+/* BID FORM */
+.bid-row{display:flex;gap:8px;margin-top:14px}
+@media(max-width:480px){.bid-row{flex-direction:column}}
+
+/* BIDS LIST */
+.bids-ul{list-style:none}
+.bid-li{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--bdr);font-size:.875rem}
+.bid-li:last-child{border:none}
+.bid-amt{font-weight:700;color:var(--p)}
+.bid-who{font-size:.78rem;color:var(--muted);margin-top:2px}
+
+/* INPUTS */
+.inp{width:100%;padding:10px 13px;border:1.5px solid var(--bdr);border-radius:var(--rs);font-size:.95rem;font-family:inherit;outline:none;transition:.15s}
+.inp:focus{border-color:var(--p)}
+textarea.inp{resize:vertical;min-height:96px}
+select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;background-size:15px;padding-right:36px}
+
+/* BUTTONS */
+.btn{padding:9px 18px;border:none;border-radius:var(--rs);font-size:.9rem;font-weight:600;cursor:pointer;transition:.15s;font-family:inherit;white-space:nowrap}
+.btn-p{background:var(--p);color:#fff}.btn-p:hover{background:var(--pd)}
+.btn-a{background:var(--a);color:#fff}.btn-a:hover{background:#B45309}
+.btn-o{background:transparent;color:var(--p);border:1.5px solid var(--p)}.btn-o:hover{background:var(--p);color:#fff}
+.btn-sm{padding:6px 13px;font-size:.8rem}
+.btn-lg{padding:13px 24px;font-size:.95rem;width:100%}
+.btn-ghost{background:transparent;color:var(--muted);border:1.5px solid var(--bdr)}.btn-ghost:hover{border-color:var(--p);color:var(--p)}
+
+/* FORM */
+.fg{margin-bottom:18px}
+.fl{display:block;font-weight:500;font-size:.875rem;margin-bottom:5px}
+.fh{font-size:.78rem;color:var(--muted);margin-top:4px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:520px){.two-col{grid-template-columns:1fr}}
+
+/* PROFILE */
+.ph{background:linear-gradient(135deg,var(--pd),#7C3AED);color:#fff;padding:36px;border-radius:var(--r);display:flex;align-items:center;gap:22px;margin-bottom:22px}
+@media(max-width:560px){.ph{flex-direction:column;text-align:center;padding:24px}}
+.pav{width:76px;height:76px;border-radius:50%;border:3px solid rgba(255,255,255,.5);object-fit:cover;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;flex-shrink:0}
+
+/* INBOX */
+.inbox-li{padding:14px 18px;border-bottom:1px solid var(--bdr);cursor:pointer;transition:.1s}
+.inbox-li:hover{background:var(--bg)}
+.inbox-li.unread{background:#EEF2FF}
+.inbox-li:last-child{border:none}
+
+/* SHARE BOX */
+.share-box{display:flex;gap:8px;padding:10px 13px;background:var(--bg);border-radius:var(--rs);margin-top:10px}
+.share-box input{flex:1;border:none;background:transparent;font-size:.8rem;color:var(--muted);outline:none}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--pd) 0%,#7C3AED 55%,var(--a) 100%);color:#fff;padding:36px 40px;border-radius:var(--r);margin-bottom:28px;text-align:center}
+.hero h1{font-size:1.9rem;font-weight:800;margin-bottom:6px}
+.hero p{opacity:.9;font-size:1rem}
+
+/* FILTERS */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.fbtn{padding:5px 15px;border:1.5px solid var(--bdr);border-radius:20px;background:#fff;cursor:pointer;font-size:.83rem;font-weight:500;transition:.15s;font-family:inherit}
+.fbtn:hover,.fbtn.on{background:var(--p);border-color:var(--p);color:#fff}
+
+/* SECTION HEADER */
+.sh{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.sh h2{font-size:1.35rem;font-weight:700}
+
+/* TOAST */
+#toast{position:fixed;bottom:22px;right:22px;padding:11px 18px;border-radius:var(--rs);color:#fff;font-weight:500;font-size:.875rem;z-index:9999;transform:translateY(80px);opacity:0;transition:.3s;max-width:340px;pointer-events:none}
+#toast.on{transform:translateY(0);opacity:1}
+#toast.ok{background:var(--ok)}
+#toast.er{background:var(--err)}
+#toast.in{background:var(--p)}
+
+/* SPINNER */
+.spin{width:36px;height:36px;border:3px solid var(--bdr);border-top-color:var(--p);border-radius:50%;animation:sp .7s linear infinite;margin:48px auto}
+@keyframes sp{to{transform:rotate(360deg)}}
+.lc{text-align:center;padding:56px 20px}
+
+/* EMPTY */
+.empty{text-align:center;padding:56px 20px;color:var(--muted)}
+.empty .ico{font-size:2.8rem;margin-bottom:14px}
+.empty h3{font-size:1.05rem;color:var(--txt);margin-bottom:6px}
+
+/* DIVIDER */
+.div{height:1px;background:var(--bdr);margin:22px 0}
+
+/* MODAL */
+.mo-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center}
+.mo-overlay.on{display:flex}
+.mo{background:#fff;border-radius:var(--r);padding:24px;max-width:480px;width:90%;box-shadow:var(--shl)}
+.mo-title{font-size:1.15rem;font-weight:700;margin-bottom:14px}
+
+/* SIGN IN */
+#screen-signin{max-width:460px;margin:56px auto;padding:0 20px}
+.si-card{background:#fff;border-radius:var(--r);padding:44px 38px;box-shadow:var(--shl);text-align:center}
+.si-logo{font-size:2.3rem;font-weight:800;color:var(--p);margin-bottom:4px}
+.si-logo b{color:var(--a)}
+
+/* SETUP */
+#screen-setup{max-width:500px;margin:0 auto}
+
+/* PAGINATION */
+.pagi{display:flex;justify-content:center;gap:8px;margin-top:28px}
+
+@media(max-width:600px){
+  .nav{padding:0 12px}
+  .wrap{padding:14px 12px}
+  .nb span{display:none}
+  .hero{padding:24px 20px}
+  .hero h1{font-size:1.4rem}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo" onclick="go('feed')">Vende<b>siya</b></div>
+  <div class="nav-right">
+    <button class="nb" onclick="go('feed')"><span>Browse</span></button>
+    <button class="nb" id="n-create" style="display:none" onclick="authGate(()=>go('create'))">+ <span>List</span></button>
+    <button class="nb" id="n-inbox" style="display:none" onclick="authGate(()=>go('inbox'))">
+      <span>Inbox</span><span id="ibadge" class="badge-dot" style="display:none">0</span>
+    </button>
+    <img id="n-av" class="nav-av" style="display:none" src="" alt="" onclick="go('myprofile')">
+    <button id="btn-in" class="nb-gold" onclick="go('signin')">Sign In</button>
+    <button id="btn-out" class="nb" style="display:none" onclick="signOut()">Out</button>
+  </div>
+</nav>
+
+<div id="toast"></div>
+
+<!-- ═══════════════ SIGN IN ═══════════════ -->
+<div id="screen-signin" class="screen">
+  <div class="si-card">
+    <div class="si-logo">Vende<b>siya</b></div>
+    <p style="color:var(--muted);font-size:.9rem;margin-bottom:6px">Sri Lanka's Live Auction Marketplace</p>
+    <p style="color:var(--muted);font-size:.85rem;margin-bottom:28px">Sign in with Google to buy &amp; sell</p>
+    <div id="gsi-btn" style="display:flex;justify-content:center"></div>
+    <p style="margin-top:20px;font-size:.78rem;color:var(--muted)">Your email and phone are only shared with auction winners/sellers — never publicly visible.</p>
+  </div>
+</div>
+
+<!-- ═══════════════ SETUP PROFILE ═══════════════ -->
+<div id="screen-setup" class="screen wrap">
+  <div class="card card-p" style="max-width:480px;margin:0 auto">
+    <h2 style="margin-bottom:6px">Complete Your Profile</h2>
+    <p style="color:var(--muted);font-size:.875rem;margin-bottom:22px">Your phone number is required before bidding or listing. It's only shared when you win or sell an auction.</p>
+    <div style="text-align:center;margin-bottom:22px">
+      <div id="su-av" class="pav" style="margin:0 auto;font-size:2rem">?</div>
+    </div>
+    <div class="fg">
+      <label class="fl">Display Name</label>
+      <input id="su-name" class="inp" type="text" placeholder="Your name">
+    </div>
+    <div class="fg">
+      <label class="fl">Phone Number *</label>
+      <input id="su-phone" class="inp" type="tel" placeholder="+94 77 123 4567">
+      <p class="fh">Shared only with your auction counterpart on close. Required to bid or list.</p>
+    </div>
+    <button class="btn btn-p btn-lg" onclick="saveProfile()">Save &amp; Continue</button>
+  </div>
+</div>
+
+<!-- ═══════════════ FEED ═══════════════ -->
+<div id="screen-feed" class="screen wrap">
+  <div class="hero">
+    <h1>Live Auctions</h1>
+    <p>Bid on unique items · Win great deals · List yours in minutes</p>
+  </div>
+  <div class="sh">
+    <h2>All Auctions</h2>
+    <button class="btn btn-sm btn-ghost" onclick="loadFeed()">↻ Refresh</button>
+  </div>
+  <div class="filters">
+    <button class="fbtn on" onclick="filter('all',this)">All</button>
+    <button class="fbtn" onclick="filter('active',this)">Active</button>
+    <button class="fbtn" onclick="filter('soon',this)">Ending Soon</button>
+    <button class="fbtn" onclick="filter('ended',this)">Ended</button>
+  </div>
+  <div id="feed-grid" class="grid"><div class="lc"><div class="spin"></div></div></div>
+  <div id="feed-pagi" class="pagi"></div>
+</div>
+
+<!-- ═══════════════ AUCTION DETAIL ═══════════════ -->
+<div id="screen-auction" class="screen wrap">
+  <div id="a-content"><div class="lc"><div class="spin"></div></div></div>
+</div>
+
+<!-- ═══════════════ PROFILE ═══════════════ -->
+<div id="screen-profile" class="screen wrap">
+  <div id="p-content"><div class="lc"><div class="spin"></div></div></div>
+</div>
+
+<!-- ═══════════════ CREATE AUCTION ═══════════════ -->
+<div id="screen-create" class="screen wrap">
+  <div class="card card-p" style="max-width:580px;margin:0 auto">
+    <h2 style="margin-bottom:4px">List an Item</h2>
+    <p style="color:var(--muted);font-size:.875rem;margin-bottom:22px">Your auction goes live immediately.</p>
+    <div class="fg">
+      <label class="fl">Item Title *</label>
+      <input id="c-title" class="inp" type="text" placeholder="e.g. Sony WH-1000XM5 Headphones (used, excellent condition)">
+    </div>
+    <div class="fg">
+      <label class="fl">Description *</label>
+      <textarea id="c-desc" class="inp" placeholder="Condition, specs, what's included, pickup/delivery info..."></textarea>
+    </div>
+    <div class="fg">
+      <label class="fl">Image URL <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+      <input id="c-img" class="inp" type="url" placeholder="https://drive.google.com/uc?export=view&id=FILE_ID">
+      <p class="fh">Upload to Google Drive → Share → Anyone with link → copy the File ID into the URL above.</p>
+    </div>
+    <div class="two-col">
+      <div class="fg">
+        <label class="fl">Starting Price (LKR) *</label>
+        <input id="c-price" class="inp" type="number" min="1" step="1" placeholder="5000">
+      </div>
+      <div class="fg">
+        <label class="fl">Duration *</label>
+        <select id="c-dur" class="inp">
+          <option value="1h">1 Hour</option>
+          <option value="1d" selected>1 Day</option>
+          <option value="1w">1 Week</option>
+          <option value="30d">30 Days</option>
+        </select>
+      </div>
+    </div>
+    <button id="c-btn" class="btn btn-p btn-lg" onclick="submitAuction()">Publish Auction</button>
+  </div>
+</div>
+
+<!-- ═══════════════ INBOX ═══════════════ -->
+<div id="screen-inbox" class="screen wrap">
+  <div style="max-width:660px;margin:0 auto">
+    <h2 style="margin-bottom:18px">Inbox</h2>
+    <div class="card" id="inbox-content"><div class="lc"><div class="spin"></div></div></div>
+  </div>
+</div>
+
+<!-- MODAL: message detail -->
+<div class="mo-overlay" id="mo-msg">
+  <div class="mo">
+    <h3 class="mo-title" id="mo-title">Message</h3>
+    <div id="mo-body" style="white-space:pre-line;line-height:1.65;font-size:.9rem;color:var(--txt)"></div>
+    <div style="margin-top:18px;text-align:right">
+      <button class="btn btn-sm btn-o" onclick="closeMo('mo-msg')">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+// ══════════════════════════════════════════════
+// CONFIG — fill these in before going live
+// ══════════════════════════════════════════════
+const CFG = {
+  CLIENT_ID: '485545715606-jdpjdjfilti9u41svgtdq5tdjl948gsp.apps.googleusercontent.com',
+  API:       'https://script.google.com/macros/s/AKfycbz9ziaNW9eXP19Zhj6VeiFl9GqLOMifnDf7Jl0QZAsTQy7gKcuhLwiWKFP72Pt3RUGm/exec',
+  CUR:       'LKR'
+};
+
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+const S = {
+  user: null,
+  poll: null,
+  auctionId: null,
+  feedRaw: [],
+  feedFilter: 'all'
+};
+
+// ══════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════
+const $  = id => document.getElementById(id);
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function toast(msg, t='in') {
+  const el=$('toast'); el.textContent=msg;
+  el.className='on '+t;
+  setTimeout(()=>el.className='',3000);
+}
+
+function fmt(n) { return CFG.CUR+' '+Number(n).toLocaleString('en-LK'); }
+
+function ago(ts) {
+  const d=Date.now()-new Date(ts), m=Math.floor(d/60000);
+  if(m<1)return'just now'; if(m<60)return m+'m ago';
+  const h=Math.floor(m/60); if(h<24)return h+'h ago';
+  return Math.floor(h/24)+'d ago';
+}
+
+function cd(end) {
+  const ms=new Date(end)-Date.now();
+  if(ms<=0)return{label:'Ended',urgent:false,over:true};
+  const s=Math.floor(ms/1000),m=Math.floor(s/60),h=Math.floor(m/60),d=Math.floor(h/24);
+  const label=d>0?`${d}d ${h%24}h left`:h>0?`${h}h ${m%60}m left`:m>0?`${m}m ${s%60}s left`:`${s}s left`;
+  return{label,urgent:ms<3600000,over:false};
+}
+
+function fmtDate(ts) { return new Date(ts).toLocaleDateString('en-LK',{day:'numeric',month:'short',year:'numeric'}); }
+
+function closeMo(id){$(id).classList.remove('on')}
+function openMo(id){$(id).classList.add('on')}
+
+// ══════════════════════════════════════════════
+// API
+// ══════════════════════════════════════════════
+async function GET(params) {
+  const r=await fetch(CFG.API+'?'+new URLSearchParams(params));
+  return r.json();
+}
+async function POST(data) {
+  if(S.user?.tok)data.token=S.user.tok;
+  const r=await fetch(CFG.API,{method:'POST',body:JSON.stringify(data),headers:{'Content-Type':'text/plain'}});
+  return r.json();
+}
+
+// ══════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════
+function initAuth() {
+  const saved=localStorage.getItem('vnd_u');
+  if(saved){S.user=JSON.parse(saved);navUpdate();checkInbox();}
+  const tryGSI=()=>{
+    if(typeof google!=='undefined'&&google.accounts){
+      google.accounts.id.initialize({client_id:CFG.CLIENT_ID,callback:onCredential,auto_select:false});
+      google.accounts.id.renderButton($('gsi-btn'),{theme:'outline',size:'large',text:'continue_with',shape:'rectangular',width:260});
+    } else setTimeout(tryGSI,400);
+  };
+  tryGSI();
+}
+
+async function onCredential(resp) {
+  toast('Signing in…','in');
+  try {
+    const r=await POST({action:'register',token:resp.credential});
+    if(r.error){toast(r.error,'er');return;}
+    S.user={...r.user,tok:resp.credential};
+    localStorage.setItem('vnd_u',JSON.stringify(S.user));
+    navUpdate();
+    toast('Welcome, '+S.user.displayName+'!','ok');
+    S.user.phone?go('feed'):go('setup');
+  } catch(e){toast('Sign-in failed.','er');}
+}
+
+function signOut() {
+  if(typeof google!=='undefined')google.accounts.id.disableAutoSelect();
+  S.user=null;
+  localStorage.removeItem('vnd_u');
+  navUpdate();
+  go('feed');
+  toast('Signed out.','in');
+}
+
+function navUpdate() {
+  const u=!!S.user;
+  $('btn-in').style.display=u?'none':'';
+  $('btn-out').style.display=u?'':'none';
+  $('n-create').style.display=u?'':'none';
+  $('n-inbox').style.display=u?'':'none';
+  $('n-av').style.display=u?'':'none';
+  if(u&&S.user.avatarUrl){$('n-av').src=S.user.avatarUrl;$('n-av').onerror=()=>$('n-av').style.display='none';}
+}
+
+function authGate(cb) {
+  if(!S.user){go('signin');toast('Sign in first.','in');return;}
+  if(!S.user.phone){go('setup');toast('Complete your profile first.','in');return;}
+  cb();
+}
+
+// ══════════════════════════════════════════════
+// ROUTING
+// ══════════════════════════════════════════════
+function go(screen, id) {
+  clearInterval(S.poll); S.poll=null;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el=$('screen-'+screen);
+  if(el)el.classList.add('active');
+  window.location.hash=id?screen+':'+id:screen;
+
+  if(screen==='feed')loadFeed();
+  else if(screen==='auction'&&id)loadAuction(id);
+  else if(screen==='profile'&&id)loadProfile(id);
+  else if(screen==='myprofile'&&S.user)loadProfile(S.user.id,true);
+  else if(screen==='create')prepCreate();
+  else if(screen==='inbox')loadInbox();
+  else if(screen==='setup')prepSetup();
+  else if(screen==='signin'&&typeof google!=='undefined')google.accounts.id.renderButton($('gsi-btn'),{theme:'outline',size:'large',text:'continue_with',shape:'rectangular',width:260});
+}
+
+function routeHash() {
+  const h=window.location.hash.replace('#','');
+  if(!h||h==='feed'){go('feed');return;}
+  const [sc,id]=h.split(':');
+  if(sc==='auction'&&id)go('auction',id);
+  else if(sc==='profile'&&id)go('profile',id);
+  else if(sc==='create')authGate(()=>go('create'));
+  else if(sc==='inbox')authGate(()=>go('inbox'));
+  else go(sc);
+}
+
+// ══════════════════════════════════════════════
+// FEED
+// ══════════════════════════════════════════════
+async function loadFeed(page) {
+  page=page||1;
+  $('feed-grid').innerHTML='<div class="lc"><div class="spin"></div></div>';
+  try {
+    const d=await GET({action:'feed',page});
+    S.feedRaw=d.auctions||[];
+    renderFeed(S.feedRaw);
+    renderPagi(d.total,page);
+  } catch(e){
+    $('feed-grid').innerHTML='<div class="empty" style="grid-column:1/-1"><div class="ico">⚠️</div><h3>Could not load</h3><p>Check connection and refresh.</p></div>';
+  }
+}
+
+function filter(f,btn) {
+  S.feedFilter=f;
+  document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const now=new Date();
+  let list=S.feedRaw;
+  if(f==='active')list=S.feedRaw.filter(a=>new Date(a.endTime)>now);
+  else if(f==='ended')list=S.feedRaw.filter(a=>new Date(a.endTime)<=now);
+  else if(f==='soon')list=S.feedRaw.filter(a=>{const ms=new Date(a.endTime)-now;return ms>0&&ms<3600000;});
+  renderFeed(list);
+}
+
+function renderFeed(list) {
+  if(!list||!list.length){
+    $('feed-grid').innerHTML=`<div class="empty" style="grid-column:1/-1">
+      <div class="ico">🏷️</div><h3>No auctions yet</h3>
+      <p>Be the first to list something!</p>
+      ${S.user?'<button class="btn btn-p" style="margin-top:14px" onclick="authGate(()=>go(\'create\'))">+ List an Item</button>':''}
+    </div>`;
+    return;
+  }
+  $('feed-grid').innerHTML=list.map(aCard).join('');
+  tickCDs();
+}
+
+function aCard(a) {
+  const c=cd(a.endTime);
+  return `<div class="card hover-lift ac" onclick="go('auction','${a.id}')">
+    <div class="ac-img">${a.imageUrl?`<img src="${esc(a.imageUrl)}" alt="${esc(a.title)}" onerror="this.parentNode.innerHTML='🏷️'">`:''}</div>
+    <div class="ac-body">
+      <div class="ac-title">${esc(a.title)}</div>
+      <div class="ac-seller">by ${esc(a.sellerName||'Unknown')}</div>
+      <div class="ac-foot">
+        <div class="price">${fmt(a.currentPrice)}<small>current bid</small></div>
+        <div class="cd ${c.urgent?'urgent':''} ${c.over?'over':''}" data-end="${a.endTime}">${c.label}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function tickCDs() {
+  clearInterval(S.poll);
+  S.poll=setInterval(()=>{
+    document.querySelectorAll('.cd[data-end]').forEach(el=>{
+      const c=cd(el.dataset.end);
+      el.textContent=c.label;
+      el.className=`cd ${c.urgent?'urgent':''} ${c.over?'over':''}`;
+    });
+  },1000);
+}
+
+function renderPagi(total,page) {
+  const pages=Math.ceil(total/12);
+  if(pages<=1){$('feed-pagi').innerHTML='';return;}
+  $('feed-pagi').innerHTML=Array.from({length:pages},(_,i)=>
+    `<button class="btn btn-sm ${i+1===page?'btn-p':'btn-o'}" onclick="loadFeed(${i+1})">${i+1}</button>`
+  ).join('');
+}
+
+// ══════════════════════════════════════════════
+// AUCTION DETAIL
+// ══════════════════════════════════════════════
+async function loadAuction(id) {
+  S.auctionId=id;
+  $('a-content').innerHTML='<div class="lc"><div class="spin"></div></div>';
+  try {
+    const d=await GET({action:'auction',id});
+    if(!d.auction){$('a-content').innerHTML='<div class="empty"><div class="ico">🔍</div><h3>Auction not found</h3></div>';return;}
+    renderAuction(d.auction,d.bids||[]);
+    S.poll=setInterval(()=>refreshAuction(id),8000);
+    setInterval(()=>tickTimer(d.auction.endTime),1000);
+  } catch(e){
+    $('a-content').innerHTML='<div class="empty"><div class="ico">⚠️</div><h3>Failed to load</h3></div>';
+  }
+}
+
+async function refreshAuction(id) {
+  try {
+    const d=await GET({action:'auction',id});
+    if(!d.auction)return;
+    const pe=$('.ad-price');
+    if(pe)pe.innerHTML=fmt(d.auction.currentPrice)+'<small>current bid</small>';
+    renderBids(d.bids||[]);
+  } catch(e){}
+}
+
+function renderAuction(a,bids) {
+  const c=cd(a.endTime);
+  const own=S.user&&S.user.id===a.sellerId;
+  const canBid=S.user&&!own&&!c.over;
+  const shareUrl=location.origin+location.pathname+'#auction:'+a.id;
+
+  const imgHtml=a.imageUrl
+    ?`<img src="${esc(a.imageUrl)}" class="ad-img" alt="${esc(a.title)}" style="display:block" onerror="this.outerHTML='<div class=\\'ad-img\\'>🏷️</div>'">`
+    :`<div class="ad-img">🏷️</div>`;
+
+  $('a-content').innerHTML=`
+    <button class="btn btn-sm btn-ghost" onclick="go('feed')" style="margin-bottom:18px">← Back</button>
+    <div class="ad-grid">
+      <div>${imgHtml}</div>
+      <div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
+          <span class="bdg ${c.over?'bdg-ended':'bdg-live'}">${c.over?'Ended':'Live'}</span>
+        </div>
+        <h1 class="ad-title">${esc(a.title)}</h1>
+        <p style="color:var(--muted);font-size:.875rem;margin-top:4px">
+          by <strong>${esc(a.sellerName)}</strong> · ${ago(a.createdAt)}
+        </p>
+        <div class="ad-price">${fmt(a.currentPrice)}<small>current bid</small></div>
+        <div id="a-timer" class="ad-timer ${c.urgent?'urgent':''} ${c.over?'over':''}">
+          ${c.over?'🏁 Auction Ended':'⏱ '+c.label}
+        </div>
+        ${canBid?`
+        <div class="bid-row">
+          <input id="bid-inp" class="inp" type="number" step="1"
+            placeholder="Min: ${fmt(Number(a.currentPrice)+1)}" min="${Number(a.currentPrice)+1}">
+          <button id="bid-btn" class="btn btn-a" onclick="submitBid('${a.id}',${a.currentPrice})">Bid Now</button>
+        </div>`:''}
+        ${!S.user&&!c.over?`<p style="margin-top:14px"><button class="btn btn-p btn-sm" onclick="go('signin')">Sign in to bid</button></p>`:''}
+        ${own?`<div style="padding:10px 14px;background:#D1FAE5;border-radius:var(--rs);margin-top:12px;font-size:.85rem;color:var(--ok)">✅ Your listing</div>`:''}
+        <div class="div"></div>
+        <p style="font-size:.9rem;line-height:1.75">${esc(a.description).replace(/\n/g,'<br>')}</p>
+        <div class="div"></div>
+        <p style="font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:8px">SHARE THIS AUCTION</p>
+        <div class="share-box">
+          <input id="share-inp" type="text" readonly value="${shareUrl}">
+          <button class="btn btn-sm btn-o" onclick="copyShare()">Copy</button>
+        </div>
+      </div>
+    </div>
+    <div class="div"></div>
+    <div>
+      <h3 style="margin-bottom:14px">Bid History <span id="bc" style="color:var(--muted);font-weight:400;font-size:.875rem">(${bids.length})</span></h3>
+      <ul class="card bids-ul" style="padding:0 18px" id="bids-list"></ul>
+    </div>`;
+
+  renderBids(bids);
+}
+
+function renderBids(bids) {
+  const el=$('bids-list'), bc=$('bc');
+  if(!el)return;
+  if(bc)bc.textContent=`(${bids.length})`;
+  if(!bids.length){el.innerHTML='<li class="bid-li" style="justify-content:center;color:var(--muted)">No bids yet — be first!</li>';return;}
+  el.innerHTML=bids.slice(0,15).map((b,i)=>`
+    <li class="bid-li">
+      <div>
+        <div style="font-weight:${i===0?700:500}">${esc(b.bidderName)}</div>
+        <div class="bid-who">${ago(b.timestamp)}</div>
+      </div>
+      <div class="bid-amt">${fmt(b.amount)} ${i===0?'🏆':''}</div>
+    </li>`).join('');
+}
+
+function tickTimer(endTime) {
+  const el=$('a-timer');if(!el)return;
+  const c=cd(endTime);
+  el.textContent=c.over?'🏁 Auction Ended':'⏱ '+c.label;
+  el.className=`ad-timer ${c.urgent?'urgent':''} ${c.over?'over':''}`;
+}
+
+async function submitBid(aId, curPrice) {
+  if(!S.user){go('signin');return;}
+  const v=parseFloat($('bid-inp').value);
+  if(!v||v<=curPrice){toast(`Must exceed ${fmt(curPrice)}`,'er');return;}
+  const btn=$('bid-btn');
+  btn.textContent='Placing…';btn.disabled=true;
+  try {
+    const r=await POST({action:'placeBid',auctionId:aId,amount:v});
+    r.error?toast(r.error,'er'):(toast('Bid placed! 🎉','ok'),$('bid-inp').value='',refreshAuction(aId));
+  } catch(e){toast('Failed to bid.','er');}
+  btn.textContent='Bid Now';btn.disabled=false;
+}
+
+function copyShare() {
+  const el=$('share-inp');
+  try {navigator.clipboard.writeText(el.value);}
+  catch(e){el.select();document.execCommand('copy');}
+  toast('Link copied!','ok');
+}
+
+// ══════════════════════════════════════════════
+// PROFILE
+// ══════════════════════════════════════════════
+async function loadProfile(uid, own) {
+  $('p-content').innerHTML='<div class="lc"><div class="spin"></div></div>';
+  try {
+    const [pr,ar]=await Promise.all([
+      GET({action:'profile',id:uid}),
+      GET({action:'userAuctions',userId:uid})
+    ]);
+    const u=pr, aucs=ar.auctions||[];
+    const init=(u.displayName||'?')[0].toUpperCase();
+    const avHtml=u.avatarUrl
+      ?`<img src="${esc(u.avatarUrl)}" class="pav" style="object-fit:cover" onerror="this.outerHTML='<div class=\\'pav\\'>${init}</div>'">`
+      :`<div class="pav">${init}</div>`;
+
+    const listHtml=aucs.length
+      ?`<div class="grid">${aucs.map(aCard).join('')}</div>`
+      :`<div class="empty"><div class="ico">🏷️</div><h3>No listings yet</h3></div>`;
+
+    $('p-content').innerHTML=`
+      <div class="ph">
+        ${avHtml}
+        <div>
+          <div style="font-size:1.4rem;font-weight:700">${esc(u.displayName)}</div>
+          <div style="opacity:.8;font-size:.875rem;margin-top:4px">Member since ${fmtDate(u.createdAt)}</div>
+          ${own?`<div style="margin-top:12px"><button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff;border:none" onclick="authGate(()=>go('create'))">+ New Auction</button></div>`:''}
+        </div>
+      </div>
+      <h3 style="margin-bottom:14px">${own?'Your Listings':'Listings by '+esc(u.displayName)}</h3>
+      ${listHtml}`;
+    tickCDs();
+  } catch(e){
+    $('p-content').innerHTML='<div class="empty"><div class="ico">⚠️</div><h3>Failed to load profile</h3></div>';
+  }
+}
+
+// ══════════════════════════════════════════════
+// CREATE AUCTION
+// ══════════════════════════════════════════════
+function prepCreate() {
+  if(!S.user){go('signin');return;}
+  if(!S.user.phone){go('setup');return;}
+  ['c-title','c-desc','c-img','c-price'].forEach(id=>{$(id).value='';});
+  $('c-dur').value='1d';
+}
+
+async function submitAuction() {
+  const t=$('c-title').value.trim(),d=$('c-desc').value.trim(),
+        img=$('c-img').value.trim(),p=$('c-price').value,dur=$('c-dur').value;
+  if(!t||!d||!p){toast('Fill in all required fields.','er');return;}
+  if(parseFloat(p)<1){toast('Starting price must be at least 1.','er');return;}
+  const btn=$('c-btn');btn.textContent='Publishing…';btn.disabled=true;
+  try {
+    const r=await POST({action:'createAuction',title:t,description:d,imageUrl:img,startPrice:p,duration:dur});
+    r.error?toast(r.error,'er'):(toast('Auction live! 🎉','ok'),go('auction',r.id));
+  } catch(e){toast('Failed to publish.','er');}
+  btn.textContent='Publish Auction';btn.disabled=false;
+}
+
+// ══════════════════════════════════════════════
+// INBOX
+// ══════════════════════════════════════════════
+async function loadInbox() {
+  if(!S.user){go('signin');return;}
+  $('inbox-content').innerHTML='<div class="lc"><div class="spin"></div></div>';
+  try {
+    const r=await POST({action:'getInbox'});
+    const msgs=r.messages||[];
+    if(!msgs.length){
+      $('inbox-content').innerHTML='<div class="empty"><div class="ico">📭</div><h3>No messages yet</h3><p>When you win or sell, contact details appear here.</p></div>';
+      return;
+    }
+    $('inbox-content').innerHTML=msgs.map(m=>`
+      <div class="inbox-li ${m.read?'':'unread'}" onclick="openMsg('${m.id}','${esc(m.auctionTitle).replace(/'/g,"\\'")}','${encodeURIComponent(m.message)}')">
+        <div style="display:flex;justify-content:space-between">
+          <div style="font-weight:600">${m.type==='win'?'🏆':'✅'} ${esc(m.auctionTitle)}</div>
+          <div style="font-size:.75rem;color:var(--muted)">${ago(m.timestamp)}</div>
+        </div>
+        <div style="font-size:.85rem;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(m.message.substring(0,90))}</div>
+      </div>`).join('');
+    const unread=msgs.filter(m=>!m.read).length;
+    if(unread>0){$('ibadge').style.display='';$('ibadge').textContent=unread>9?'9+':unread;}
+    else $('ibadge').style.display='none';
+  } catch(e){
+    $('inbox-content').innerHTML='<div class="empty">Failed to load.</div>';
+  }
+}
+
+function openMsg(id,title,enc) {
+  $('mo-title').textContent=title;
+  $('mo-body').textContent=decodeURIComponent(enc);
+  openMo('mo-msg');
+  POST({action:'markRead',messageId:id}).catch(()=>{});
+}
+
+async function checkInbox() {
+  if(!S.user)return;
+  try {
+    const r=await POST({action:'getInbox'});
+    const u=(r.messages||[]).filter(m=>!m.read).length;
+    $('ibadge').style.display=u>0?'':'none';
+    if(u>0)$('ibadge').textContent=u>9?'9+':u;
+  } catch(e){}
+}
+
+// ══════════════════════════════════════════════
+// SETUP PROFILE
+// ══════════════════════════════════════════════
+function prepSetup() {
+  if(!S.user){go('signin');return;}
+  $('su-name').value=S.user.displayName||'';
+  $('su-phone').value=S.user.phone||'';
+  const el=$('su-av');
+  if(S.user.avatarUrl){
+    el.outerHTML=`<img id="su-av" src="${S.user.avatarUrl}" style="width:76px;height:76px;border-radius:50%;border:3px solid var(--bdr);object-fit:cover;margin:0 auto;display:block" onerror="this.outerHTML='<div id=\\'su-av\\' class=\\'pav\\' style=\\'margin:0 auto\\'>${(S.user.displayName||'?')[0].toUpperCase()}</div>'">`;
+  } else {
+    el.textContent=(S.user.displayName||'?')[0].toUpperCase();
+  }
+}
+
+async function saveProfile() {
+  const phone=$('su-phone').value.trim();
+  if(!phone){toast('Phone number is required.','er');return;}
+  const btn=document.querySelector('#screen-setup .btn-p');
+  btn.textContent='Saving…';btn.disabled=true;
+  try {
+    const r=await POST({action:'updatePhone',phone});
+    if(r.error){toast(r.error,'er');}
+    else{
+      S.user={...S.user,...r.user,tok:S.user.tok};
+      localStorage.setItem('vnd_u',JSON.stringify(S.user));
+      toast('Profile saved!','ok');
+      go('feed');
+    }
+  } catch(e){toast('Failed to save.','er');}
+  btn.textContent='Save & Continue';btn.disabled=false;
+}
+
+// ══════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+  initAuth();
+  window.addEventListener('hashchange',routeHash);
+  document.querySelectorAll('.mo-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('on');}));
+  if(window.location.hash)routeHash();
+  else go('feed');
+  setInterval(checkInbox,120000);
+});
+</script>
+</body>
+</html>
